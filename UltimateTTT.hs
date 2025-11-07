@@ -1,19 +1,21 @@
-data Player = PlayerX | PlayerO deriving (Show, Eq)
+data Player = X | O deriving (Show, Eq)
 -- helper function to change player 
 
 data Winner = Win Player | Draw | OnGoing deriving (Eq, Show)
 
-data Square = X | O | Empty deriving (Eq, Show)
+data Square = Full Player | Empty deriving (Eq, Show)
 
-type GameBoard = [[Sqaure]]
+type GameBoard = [[SmallBoard]]
 
-type smallBox = [[Sqaure]]
+type Game = (GameBoard, Player) 
 
-type bigBox = [[smallBox]]
+data SmallBoard = UnFinished [[Sqaure]] | Finished Winner deriving (Eq, Show)
 
-type location = (int, int) 
+type Loc = (Int, Int)
 
 data prevMove = location
+
+
 --helper function to change prev move and keep track like the player helper function
 
 
