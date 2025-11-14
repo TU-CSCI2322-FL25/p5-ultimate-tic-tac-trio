@@ -9,16 +9,41 @@ type GameBoard = [[SmallBoard]]
 
 type Game = (GameBoard, Player) 
 
-data SmallBoard = UnFinished [[Sqaure]] | Finished Winner deriving (Eq, Show)
+data SmallBoard = UnFinished [[Square]] | Finished Winner deriving (Eq, Show)
 
 type Loc = (Int, Int)
 
-data prevMove = location
+type prevMove = (Int, Int)
 
 
 --helper function to change prev move and keep track like the player helper function
 
 
+legalMoves :: Game -> Loc -> [Loc]
+legalMoves (board, _) (bb, sq) =
+    case getSmallBoardFlat board sq of
+        Nothing -> []
+        Just sb ->
+            if isPlayable sb
+                then -- can only play inside sq smallboard
+                    [ (sq, s) | s <- emptySquaresFlat sb ]
+                else -- free choice
+                    [ (b, s) | (b, sb') <- zip [0..] board, isPlayable sb', s <- emptySquaresFlat sb']
 
+flattenBoard :: GameBoard -> [(Int, SmallBoard)]
+flattenBoard gb =
+    [ (boardIdx, sb) | (boardRow, row) <- zip [0..] gb, (boardCol, sb)  <- zip [0..] row, let boardIdx = boardRow * 3 + boardCol]
 
+getSmallBoardFlat :: GameBoard -> Int -> Maybe SmallBoard
+getSmallBoardFlat gb idx =
+    listToMaybe
+        [ sb | (i, sb) <- flattenBoard gb, i == idx]
 
+emptySquaresFlat :: SmallBoard -> [Int]
+emptySquaresFlat (Finished _) = []
+emptySquaresFlat (UnFinished rows) =
+    [ r * 3 + c | (r, row) <- zip [0..] rows, (c, sq)  <- zip [0..] row, sq == Empty]
+
+isPlayable :: SmallBoard -> Bool
+isPlayable (UnFinished _) = True
+isPlayable _              = False
