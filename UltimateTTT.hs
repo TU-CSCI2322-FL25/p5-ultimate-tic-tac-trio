@@ -13,7 +13,7 @@ data SmallBoard = UnFinished [[Square]] | Finished Winner deriving (Eq, Show)
 
 type Loc = (Int, Int)
 
-type prevMove = (Int, Int)
+type prevMove = Loc
 
 
 --helper function to change prev move and keep track like the player helper function
