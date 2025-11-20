@@ -7,86 +7,60 @@ data Square = Full Player | Empty deriving (Eq, Show)
 
 type GameBoard = [[SmallBoard]]
 
-type Game = (GameBoard, Player) 
+type Game = (GameBoard, Player, Move) 
 
 data SmallBoard = UnFinished [[Square]] | Finished Winner deriving (Eq, Show)
 
-type Loc = (Int, Int)
+type Move = (Int, Int)
 
-type prevMove = Loc
+
 --helper function to change prev move and keep track like the player helper function
 
 addMove :: Game -> Move -> Game
-addMove (board, playa) move = (newB, nextPlaya playa)
-where
-    newB = updateB board move playa
+addMove (board, playa, premove) move = if move `elem` legalm then (newB, nextPlaya playa, move) else error "That is not a legal move punk >:("
+	where
+	
+	legalm = legalMoves (board, playa, premove)
 
-nextPlaya :: Player -> Player
-nextPlaya X = O
-nextPlaya O = X 
+	updateBoard :: GameBoard -> Move -> Player -> GameBoard
+	updateBoard [[a,b,c],[d,e,f],[g,h,i]] (1, x) p = [[checkFinished(updateSquare a x p),b,c],[d,e,f],[g,h,i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (2, x) p = [[a,checkFinished(updateSquare b x p),c],[d,e,f],[g,h,i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (3, x) p = [[a,b,checkFinished(updateSquare c x p)],[d,e,f],[g,h,i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (4, x) p = [[a,b,c],[checkFinished(updateSquare d x p),e,f],[g,h,i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (5, x) p = [[a,b,c],[d,checkFinished(updateSquare e x p),f],[g,h,i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (6, x) p = [[a,b,c],[d,e,checkFinished(updateSquare f x p)],[g,h,i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (7, x) p = [[a,b,c],[d,e,f],[checkFinished(updateSquare g x p),h,i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (8, x) p = [[a,b,d],[d,e,f],[g,checkFinished(updateSquare h x p),i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (9, x) p = [[a,b,c],[d,e,f],[g,h,checkFinished(updateSquare i x p)]]
 
--- replace element at index x with a new value
-replaceAt :: Int -> a -> [a] -> [a]
-replaceAt x new xs = 
-    [if spot == x then new else y 
-    | (spot,y) <- zip [0..] xs]
 
---get a column, duh
-getColumn :: Int -> [[Square]] -> [Square]
-getColumn c rs = 
-    [sq | r <- rs, (cIndex,sq) <- zip [0..] r, cIndex == c]
+	updateSquare :: SmallBoard -> Int -> Player -> SmallBoard
+	updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 1 p = [[Full p,b,c],[d,e,f],[g,h,i]] 
+        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 2 p = [[a,Full p,c],[d,e,f],[g,h,i]]
+        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 3 p = [[a,b,Full p],[d,e,f],[g,h,i]]
+        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 4 p = [[a,b,c],[Full p,e,f],[g,h,i]]
+        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 5 p = [[a,b,c],[d,Full p,f],[g,h,i]]
+        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 6 p = [[a,b,c],[d,e,Full p],[g,h,i]]
+        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 7 p = [[a,b,c],[d,e,f],[Full p,h,i]]
+        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 8 p = [[a,b,c],[d,e,f],[g,Full p,i]]
+        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 9 p = [[a,b,c],[d,e,f],[g,h,Full p]]
 
--- see if small board had a winner (draw or ongoing)
-checkSmallB :: [[Square]] -> Winner
-checkSmallB rs 
-    |any (all isX) rs = Win X
-    |any (all isO) rs = Win O
-    |any (all isO) cs = Win O
-    |any (all isX) cs = Win X 
-    |all(all isFilled) rs = Draw
-    |otherwise = OnGoing
-    where
-        cs = [getColumn c rs | c <- [0..2]]
-        --below checks square content
-        isX (Full X) = True
-        isX _ = False
-        isO (Full O) = True
-        isO _ = False
-        isFilled Empty = False
-        isFilled _ = True
 
---with the new move update the small board
-updateSmallB :: SmallBoard -> Loc -> Player -> SmallBoard
-updateSmallB (Finished w) _ _ = Finished w 
-updateSmallB (UnFinished rs) (r,c) playa = 
-    case winner of
-        OnGoing -> UnFinished newRs
-        w -> Finished w 
-    where
-        newRs = [if rIndex == r 
-            then replaceAt c (Full playa) row 
-            else row 
-            | (rIndex, row) <- zip[0..]rs]
-        winner = checkSmallB newRs
+	checkFinished :: SmallBoard -> SmallBoard
+	checkFinished UnFinished [[a,b,c],[d,e,f],[g,h,i]] = 
+		let wins = [[a,b,c],[d,e,f],[g,h,i],[a,d,g],[b,e,h],[c,f,i],[a,e,i],[c,e,g]]
+		    squares = [a,b,c,d,e,f,g,h,i]
+		if any(all(==Full X) wins then Finished Win X else if any (all (==Full O)) wins then Finished Win O else if any (==Empty) squares then Unfinished [[a,b,c],[d,e,f],[g,h,i]] else Finished Draw   
+	
+	nextPlaya :: Player -> Player
+	nextPlaya X = O
+	nextPlaya O = X 
 
-updateRo :: [SmallBoard] -> Int -> Loc -> Player -> [SmallBoard]
-updateRo r bigC smLoc playa = 
-    [if cIndex == bigC 
-        then updateSmallB sB smLoc playa 
-        else sB 
-        | (cIndex,sB) <- zip[0..] r]
-
-updateB :: GameBoard -> Move -> Player -> GameBoard
-updateB b ((bigRow, bigCol), smLoc) playa =
-    [if rIndex == bigRow 
-        then updateRo r bigCol smLoc playa 
-        else r 
-        | (rIndex,r) <- zip [0..] b]
 
 
 
 prettyPrint :: Game -> String
-prettyPrint (board,player) = "The current player is " ++ show player ++ "\n" ++ unlines (comBig board)
+prettyPrint (board,player, _) = "The current player is " ++ show player ++ "\n" ++ unlines (comBig board)
 where
     --square to character
     quare :: Square -> Char
@@ -125,14 +99,7 @@ gameStartSB = [[Empty, Empty, Empty], [Empty, Empty, Empty], [Empty, Empty, Empt
 gameStartGB = replicate 3 (replicate 3 gameStartSB)
 
 checkWinner :: Game -> Winner
-checkWinner (game, _) = bigBoardWin (map (map smallBoardWin) game)
-	where 
-	smallBoardWin :: SmallBoard -> SmallBoard
-	smallBoardWin (UnFinished [[a,b,c], [d,e,f], [g,h,i]]) =
-		let squares = [ [a,b,c], [d,e,f], [g,h,i], [a,d,g], [b,e,h], [c,f,i], [a,e,i], [c,e,g] ]
-		in if any (all (== Full X)) squares then Finished (Win X) else if any (all (== Full O)) squares then Finished (Win O) else UnFinished [[a,b,c],[d,e,f],[g,h,i]]
-	smallBoardWin sb@(Finished _) = sb
-
+checkWinner (game, _) = bigBoardWin game
 	bigBoardWin :: GameBoard -> Winner
 	bigBoardWin [[a,b,c], [d,e,f], [g,h,i]] =
 		let eval x = case x of Finished (Win X) -> Just X
@@ -150,31 +117,62 @@ checkWinner (game, _) = bigBoardWin (map (map smallBoardWin) game)
 					then OnGoing 
 					else Draw
 
-legalMoves :: Game -> Loc -> [Loc]
-legalMoves (board, _) (bb, sq) =
-    case getSmallBoardFlat board sq of
-        Nothing -> []
-        Just sb ->
-            if isPlayable sb
-                then -- can only play inside sq smallboard
-                    [ (sq, s) | s <- emptySquaresFlat sb ]
-                else -- free choice
-                    [ (b, s) | (b, sb') <- zip [0..] board, isPlayable sb', s <- emptySquaresFlat sb']
+legalMoves :: Game -> [Move]
+legalMoves (board, _, (_, sq)) = if checkSB sq board then [(x,y) | x <- moves, x == sq, checkSQ y sq] else [(x,y) | x <- moves, checkSQ y (getSB x board)]
+    where 
 
-flattenBoard :: GameBoard -> [(Int, SmallBoard)]
-flattenBoard gb =
-    [ (boardIdx, sb) | (boardRow, row) <- zip [0..] gb, (boardCol, sb)  <- zip [0..] row, let boardIdx = boardRow * 3 + boardCol]
+    checkSQ :: Int -> SmallBoard -> Bool
+    checkSQ x [[a,b,c],[d,e,f],[g,h,i]]
+      | 1 [[Empty,b,c],[d,e,f],[g,h,i]] = True
+      | 2 [[a,Empty,c],[d,e,f],[g,h,i]] = True
+      | 3 [[a,b,Empty],[d,e,f],[g,h,i]] = True
+      | 4 [[a,b,c],[Empty,e,f],[g,h,i]] = True
+      | 5 [[a,b,c],[d,Empty,f],[g,h,i]] = True
+      | 6 [[a,b,c],[d,e,Empty],[g,h,i]] = True
+      | 7 [[a,b,c],[d,e,f],[Empty,h,i]] = True
+      | 8 [[a,b,c],[d,e,f],[g,Empty,i]] = True
+      | 9 [[a,b,c],[d,e,f],[g,h,Empty]] = True
+      | Otherwise                       = False
 
-getSmallBoardFlat :: GameBoard -> Int -> Maybe SmallBoard
-getSmallBoardFlat gb idx =
-    listToMaybe
-        [ sb | (i, sb) <- flattenBoard gb, i == idx]
 
-emptySquaresFlat :: SmallBoard -> [Int]
-emptySquaresFlat (Finished _) = []
-emptySquaresFlat (UnFinished rows) =
-    [ r * 3 + c | (r, row) <- zip [0..] rows, (c, sq)  <- zip [0..] row, sq == Empty]
+    getSB :: Int -> GameBoard -> SmallBoard
+    getSB 1 [[a,b,c],[d,e,f],[g,h,i]] = a
+    getSB 2 [[a,b,c],[d,e,f],[g,h,i]] = b
+    getSB 3 [[a,b,c],[d,e,f],[g,h,i]] = c
+    getSB 4 [[a,b,c],[d,e,f],[g,h,i]] = d
+    getSB 5 [[a,b,c],[d,e,f],[g,h,i]] = e
+    getSB 6 [[a,b,c],[d,e,f],[g,h,i]] = f
+    getSB 7 [[a,b,c],[d,e,f],[g,h,i]] = g
+    getSB 8 [[a,b,c],[d,e,f],[g,h,i]] = h
+    getSB 9 [[a,b,c],[d,e,f],[g,h,i]] = i
 
-isPlayable :: SmallBoard -> Bool
-isPlayable (UnFinished _) = True
-isPlayable _              = False
+
+    moves = [(x,y) | x <- [1..9], y <- [1..9]] 
+
+    checkSB :: Int -> GameBoard -> Bool
+    checkSB x [[a,b,c],[d,e,f],[g,h,i]] 
+      | 1 [[UnFinished _,b,c],[d,e,f],[g,h,i]] = True
+      | 2 [[a,UnFinished _,c],[d,e,f],[g,h,i]] = True
+      | 3 [[a,b,UnFinished _],[d,e,f],[g,h,i]] = True
+      | 4 [[a,b,c],[UnFinished _,e,f],[g,h,i]] = True
+      | 5 [[a,b,c],[d,UnFinished _,f],[g,h,i]] = True
+      | 6 [[a,b,c],[d,e,Unfinished _],[g,h,i]] = True
+      | 7 [[a,b,c],[d,e,f],[UnFinished _,h,i]] = True
+      | 8 [[a,b,c],[d,e,f],[g,UnFinished _,i]] = True
+      | 9 [[a,b,c],[d,e,f],[g,h,UnFinished _]] = True
+      | Otherwise                              = False
+  
+     
+
+
+
+
+
+
+
+
+
+
+
+
+
