@@ -1,7 +1,7 @@
 data Player = X | O deriving (Show, Eq)
 -- helper function to change player 
 
-data Winner = Win Player | Draw | OnGoing deriving (Eq, Show)
+data Winner = Win Player | Draw deriving (Eq, Show)
 
 data Square = Full Player | Empty deriving (Eq, Show)
 
@@ -35,26 +35,30 @@ addMove (board, playa, premove) move = if move `elem` legalm then (newB, nextPla
 
 
 	updateSquare :: SmallBoard -> Int -> Player -> SmallBoard
-	updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 1 p = [[Full p,b,c],[d,e,f],[g,h,i]] 
-        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 2 p = [[a,Full p,c],[d,e,f],[g,h,i]]
-        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 3 p = [[a,b,Full p],[d,e,f],[g,h,i]]
-        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 4 p = [[a,b,c],[Full p,e,f],[g,h,i]]
-        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 5 p = [[a,b,c],[d,Full p,f],[g,h,i]]
-        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 6 p = [[a,b,c],[d,e,Full p],[g,h,i]]
-        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 7 p = [[a,b,c],[d,e,f],[Full p,h,i]]
-        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 8 p = [[a,b,c],[d,e,f],[g,Full p,i]]
-        updateSquare Unfinished [[a,b,c],[d,e,f],[g,h,i]] 9 p = [[a,b,c],[d,e,f],[g,h,Full p]]
+	updateSquare UnFinished [[a,b,c],[d,e,f],[g,h,i]] 1 p = UnFinished [[Full p,b,c],[d,e,f],[g,h,i]] 
+        updateSquare UnFinished [[a,b,c],[d,e,f],[g,h,i]] 2 p = UnFinished [[a,Full p,c],[d,e,f],[g,h,i]]
+        updateSquare UnFinished [[a,b,c],[d,e,f],[g,h,i]] 3 p = UnFinished [[a,b,Full p],[d,e,f],[g,h,i]]
+        updateSquare UnFinished [[a,b,c],[d,e,f],[g,h,i]] 4 p = UnFinished [[a,b,c],[Full p,e,f],[g,h,i]]
+        updateSquare UnFinished [[a,b,c],[d,e,f],[g,h,i]] 5 p = UnFinished [[a,b,c],[d,Full p,f],[g,h,i]]
+        updateSquare UnFinished [[a,b,c],[d,e,f],[g,h,i]] 6 p = UnFinished [[a,b,c],[d,e,Full p],[g,h,i]]
+        updateSquare UnFinished [[a,b,c],[d,e,f],[g,h,i]] 7 p = UnFinished [[a,b,c],[d,e,f],[Full p,h,i]]
+        updateSquare UnFinished [[a,b,c],[d,e,f],[g,h,i]] 8 p = UnFinished [[a,b,c],[d,e,f],[g,Full p,i]]
+        updateSquare UnFinished [[a,b,c],[d,e,f],[g,h,i]] 9 p = UnFinished [[a,b,c],[d,e,f],[g,h,Full p]]
+	updateSquare _ x _ = error "Your move must be a number index must be 1 - 9"
 
 
 	checkFinished :: SmallBoard -> SmallBoard
+	checkFinished sb@(Finished _) = sb
 	checkFinished UnFinished [[a,b,c],[d,e,f],[g,h,i]] = 
 		let wins = [[a,b,c],[d,e,f],[g,h,i],[a,d,g],[b,e,h],[c,f,i],[a,e,i],[c,e,g]]
 		    squares = [a,b,c,d,e,f,g,h,i]
-		if any(all(==Full X) wins then Finished Win X else if any (all (==Full O)) wins then Finished Win O else if any (==Empty) squares then Unfinished [[a,b,c],[d,e,f],[g,h,i]] else Finished Draw   
+		if any(all(==Full X) wins then Finished Win X else if any (all (==Full O)) wins then Finished Win O else if any (==Empty) squares then UnFinished [[a,b,c],[d,e,f],[g,h,i]] else Finished Draw   
 	
-	nextPlaya :: Player -> Player
-	nextPlaya X = O
-	nextPlaya O = X 
+
+
+nextPlaya :: Player -> Player
+nextPlaya X = O
+nextPlaya O = X 
 
 
 
@@ -98,7 +102,7 @@ where
 gameStartSB = [[Empty, Empty, Empty], [Empty, Empty, Empty], [Empty, Empty, Empty]]
 gameStartGB = replicate 3 (replicate 3 gameStartSB)
 
-checkWinner :: Game -> Winner
+checkWinner :: Game -> Maybe Winner
 checkWinner (game, _) = bigBoardWin game
 	bigBoardWin :: GameBoard -> Winner
 	bigBoardWin [[a,b,c], [d,e,f], [g,h,i]] =
@@ -110,15 +114,15 @@ checkWinner (game, _) = bigBoardWin game
                     getVals line = map eval line
   
                 in if any (\l -> getVals l == [Just X, Just X, Just X]) squares
-			then Win X
+			then Just Win X
 		        else if any (\l -> getVals l == [Just O, Just O, Just O]) squares
-				then Win O
+				then Just Win O
 				else if any (\s -> case s of UnFinished _ -> True; _ -> False) [a,b,c,d,e,f,g,h,i]
-					then OnGoing 
-					else Draw
+					then Nothing 
+					else Just Draw
 
 legalMoves :: Game -> [Move]
-legalMoves (board, _, (_, sq)) = if checkSB sq board then [(x,y) | x <- moves, x == sq, checkSQ y sq] else [(x,y) | x <- moves, checkSQ y (getSB x board)]
+legalMoves (board, _, (_, sq)) = if checkSB sq board then [(x,y) | x <- moves, x == sq, checkSQ y sq] else [(x,y) | x <- moves, checkSB x, checkSQ y (getSB x board)]
     where 
 
     checkSQ :: Int -> SmallBoard -> Bool
@@ -167,11 +171,31 @@ legalMoves (board, _, (_, sq)) = if checkSB sq board then [(x,y) | x <- moves, x
 
 
 
+whoWillWin :: Game -> Winner
+whoWillWin g@(board, player, premove)
+    | terminal g = result g
+    | otherwise = 
+        let moves = legalMoves g
+	    outcomes = [whoWillWin (addMove g m) | m <- moves]
+	in bestOutcome player outcomes
 
 
+bestOutcome :: Player -> [Winner] -> 
+bestOutcome p outcomes
+    | any (== Win p) outcomes = Win p
+    | any (== Draw) outcomes  = Draw
+    | otherwise               = Win (nextPlaya p)
+
+result :: Game -> Winner
+result g = case checkWinner g of 
+    Just w  -> w
+    Nothing -> error "Game is not finished"
 
 
-
+terminal :: Game -> Bool
+terminal g = case checkWinner g of 
+    Just _  -> True
+    Nothing -> False
 
 
 
