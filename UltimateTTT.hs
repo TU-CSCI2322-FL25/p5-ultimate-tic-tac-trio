@@ -1,4 +1,4 @@
-data Player = X | O deriving (Show, Eqi)
+data Player = X | O deriving (Show, Eq)
 -- helper function to change player 
 
 data Winner = Win Player | Draw deriving (Eq, Show)
