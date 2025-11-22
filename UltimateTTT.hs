@@ -52,7 +52,7 @@ addMove (board, playa, premove) move = if move `elem` legalm then (newB, nextPla
 	checkFinished UnFinished [[a,b,c],[d,e,f],[g,h,i]] = 
 		let wins = [[a,b,c],[d,e,f],[g,h,i],[a,d,g],[b,e,h],[c,f,i],[a,e,i],[c,e,g]]
 		    squares = [a,b,c,d,e,f,g,h,i]
-		if any(all(==Full X) wins then Finished Win X else if any (all (==Full O)) wins then Finished Win O else if any (==Empty) squares then UnFinished [[a,b,c],[d,e,f],[g,h,i]] else Finished Draw   
+		in if any(all(==Full X)) wins then Finished Win X else if any (all (==Full O)) wins then Finished Win O else if any (==Empty) squares then UnFinished [[a,b,c],[d,e,f],[g,h,i]] else Finished Draw   
 	
 
 
@@ -64,40 +64,40 @@ nextPlaya O = X
 
 
 prettyPrint :: Game -> String
-prettyPrint (board,player, _) = "The current player is " ++ show player ++ "\n" ++ unlines (comBig board)
-where
-    --square to character
-    quare :: Square -> Char
-    quare (Full X ) = 'X'
-    quare (Full O) = 'O'
-    quare Empty = ' '
-
-    --outcome is a small board
-    smallBo :: SmallBoard -> [String]
-    smallBo (Finished( Win playa )) = replicate 3 (replicate 3 (bob playa))
+prettyPrint (board,player, _) = "The current player is " ++ show player ++ "\n" ++ unlines (comWhole board)
     where
-        bob X = 'X'
-        bob O = 'O'
-    smallBo (Finished Draw) = replicate 3 (replicate 3 'd')
-    smallBo (UnFinished squares) = map (map quare) squares
+        --square to character
+        quare :: Square -> Char
+        quare (Full X ) = 'X'
+        quare (Full O) = 'O'
+        quare Empty = ' '
 
-    --three small boards left to right
-    comRow :: [SmallBoard] -> [String]
-    comRow [a,b,c] = comLines (smallBo a) (smallBo b) (smallBo c)
-    where
-        comLines :: [[Char]] -> [[Char]] -> [[Char]] -> [String]
-        comLines [][][] = []
-        comLines (j:j1) (h:h2) (k:k3) = (j ++ "|" ++ h ++ "|" ++ k): comLines j1 h2 k3
-        comLines _ _ _ = error "all small boards must have same amount of rows"
-    comRow _ = error "each row of big boards must have 3 small ones"
+        --outcome is a small board
+        smallBo :: SmallBoard -> [String]
+        smallBo (Finished( Win playa )) = replicate 3 (replicate 3 (bob playa))
+            where
+                bob X = 'X'
+                bob O = 'O'
+        smallBo (Finished Draw) = replicate 3 (replicate 3 'd')
+        smallBo (UnFinished squares) = map (map quare) squares
 
-    --combine whole thing (all rows on top of each other)
-    comWhole [j,h,k] = r1 ++ r2 ++ r3
-    where
-        r1 = comRow j
-        r2 = comROw h
-        r3 = comRow k
-    comWhole _ = error "must be three by three"
+        --three small boards left to right
+        comRow :: [SmallBoard] -> [String]
+        comRow [a,b,c] = comLines (smallBo a) (smallBo b) (smallBo c)
+            where
+                comLines :: [[Char]] -> [[Char]] -> [[Char]] -> [String]
+                comLines [][][] = []
+                comLines (j:j1) (h:h2) (k:k3) = (j ++ "|" ++ h ++ "|" ++ k): comLines j1 h2 k3
+                comLines _ _ _ = error "all small boards must have same amount of rows"
+        comRow _ = error "each row of big boards must have 3 small ones"
+
+        --combine whole thing (all rows on top of each other)
+        comWhole [j,h,k] = r1 ++ r2 ++ r3
+            where
+                r1 = comRow j
+                r2 = comRow h
+                r3 = comRow k
+        comWhole _ = error "must be three by three"
 
 gameStartSB = [[Empty, Empty, Empty], [Empty, Empty, Empty], [Empty, Empty, Empty]]
 gameStartGB = replicate 3 (replicate 3 gameStartSB)
@@ -165,10 +165,12 @@ legalMoves (board, _, (_, sq)) = if checkSB sq board then [(x,y) | x <- moves, x
       | 8 [[a,b,c],[d,e,f],[g,UnFinished _,i]] = True
       | 9 [[a,b,c],[d,e,f],[g,h,UnFinished _]] = True
       | Otherwise                              = False
-
-
+  
+     
 
 ---story 9
+
+
 whoWillWin :: Game -> Winner
 whoWillWin g@(board, player, premove)
     | terminal g = result g
@@ -196,6 +198,7 @@ terminal g = case checkWinner g of
     Nothing -> False
 ----- story 9 done
 
+-- story 10
 bestMove :: Game -> Move
 bestMove g@(board, player, premove)
     |null moves = error "No legal moves are available"
@@ -207,3 +210,77 @@ where
     outcome x = whoWillWin (addMove g x)
     winningMoves = [x | x <- moves, outcome x == Win player]
     drawMoves = [x | x <- moves, outcome x == Draw]
+-- end story 10
+
+-- story 11 (not 3x3 to make it easier)
+X -- current player
+(0,0) -- previous move
+000 000 000 -- smallboard 1
+000 000 000
+000 000 000
+000 000 000
+000 000 000
+000 000 000
+000 000 000
+000 000 000
+000 000 000 -- smallboard 9
+
+-- story 12
+readGame :: String -> Game --main 
+readGame str = (board, player, premove)
+    where 
+        ls = lines str
+        player = case head ls of
+            "X" -> X
+            "O" -> O
+            _   -> error "Invalid player"
+        premove = read (head (drop 1 ls)) :: Move
+        boardLines = drop 2 ls
+        boards = [ take 3 boardLines, take 3 (drop 3 boardLines), take 3 (drop 6 boardLines)]
+        board = [ map parseSmallBoard row | row <- boards ]
+--helpers
+parseSmallBoard :: String -> SmallBoard
+parseSmallBoard st =
+    let s = filter (/= ' ') st -- remove spaces
+    in if length s /= 9 then error ("Smallboard must have 9 chars: " ++ st)
+    else if all (== 'X') s then Finished (Win X)
+    else if all (== 'O') s then Finished (Win O)
+    else if any (== '0') s then UnFinished (parseSquares s)
+    else Finished Draw
+
+parseSquares :: String -> [[Square]]
+parseSquares sq =
+    let (row1, rest) = splitAt 3 sq
+        (row2, row3) = splitAt 3 rest
+    in [ map charToSquare row1, map charToSquare row2, map charToSquare row3]
+
+charToSquare :: Char -> Square
+charToSquare 'X' = Full X
+charToSquare 'O' = Full O
+charToSquare '0' = Empty
+charToSquare _   = error "Invalid square character"
+--end story 12
+
+-- story 13
+showGame :: Game -> String -- main
+showGame (board, player, premove) =
+    let playerStr = case player of
+            X -> "X"
+            O -> "O"
+        premoveStr = show premove
+        boardStr = map showSmallBoard (concat board)
+        boardStrs = unlines boardStr
+    in unlines (playerStr : premoveStr : boardStrs)
+--helper
+showSmallBoard :: SmallBoard -> String
+showSmallBoard (Finished (Win X)) = "XXX XXX XXX"
+showSmallBoard (Finished (Win O)) = "OOO OOO OOO"
+showSmallBoard (Finished Draw)   = "DDD DDD DDD" -- D for draw?? unless we change the Draw data type
+showSmallBoard (UnFinished squares) =
+    let [row1,row2,row3] = squares
+    in unwords [map squareToChar row1, map squareToChar row2, map squareToChar row3]
+  where
+    squareToChar (Full X) = 'X'
+    squareToChar (Full O) = 'O'
+    squareToChar Empty    = '0'
+-- end story 13
