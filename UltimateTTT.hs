@@ -165,12 +165,10 @@ legalMoves (board, _, (_, sq)) = if checkSB sq board then [(x,y) | x <- moves, x
       | 8 [[a,b,c],[d,e,f],[g,UnFinished _,i]] = True
       | 9 [[a,b,c],[d,e,f],[g,h,UnFinished _]] = True
       | Otherwise                              = False
-  
-     
 
 
 
-
+---story 9
 whoWillWin :: Game -> Winner
 whoWillWin g@(board, player, premove)
     | terminal g = result g
@@ -196,7 +194,16 @@ terminal :: Game -> Bool
 terminal g = case checkWinner g of 
     Just _  -> True
     Nothing -> False
+----- story 9 done
 
-
-
-
+bestMove :: Game -> Move
+bestMove g@(board, player, premove)
+    |null moves = error "No legal moves are available"
+    |not(null winningMoves) = head winningMoves
+    |not (null drawMoves) = head drawMoves
+    |otherwise = head moves
+where
+    moves = legalMoves g
+    outcome x = whoWillWin (addMove g x)
+    winningMoves = [x | x <- moves, outcome x == Win player]
+    drawMoves = [x | x <- moves, outcome x == Draw]
