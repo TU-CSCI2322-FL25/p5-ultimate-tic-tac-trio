@@ -212,7 +212,7 @@ where
     drawMoves = [x | x <- moves, outcome x == Draw]
 -- end story 10
 
--- story 11 
+-- story 11 (not 3x3 to make it easier)
 X -- current player
 (0,0) -- previous move
 000 000 000 -- smallboard 1
