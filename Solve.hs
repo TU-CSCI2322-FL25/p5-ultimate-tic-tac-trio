@@ -1,3 +1,10 @@
+module Solving
+( whoWillWin
+, bestMove
+) where
+
+import CoreGame
+
 ---story 9
 
 
