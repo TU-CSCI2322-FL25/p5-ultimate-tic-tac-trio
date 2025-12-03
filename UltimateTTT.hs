@@ -307,6 +307,8 @@ emptyBoard =
   , [emptySmall, emptySmall, emptySmall]
   , [emptySmall, emptySmall, emptySmall]
   ]
+    where
+        emptySmall = UnFinished (replicate 3 (replicate 3 Empty))
 
 gb2 :: GameBoard
 gb2 =
@@ -314,6 +316,11 @@ gb2 =
   , [draw, empty, winO]
   , [empty, empty, draw]
   ]
+    where
+        empty = UnFinished (replicate 3 (replicate 3 Empty))
+        winX = Finished (Win X)
+        winO = Finished (Win O)
+        draw = Finished Draw
 
 gb3 :: GameBoard
 gb3 =
