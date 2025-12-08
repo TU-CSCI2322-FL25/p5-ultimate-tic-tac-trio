@@ -1,4 +1,4 @@
-module Solving
+module Solve
 ( whoWillWin
 , bestMove
 ) where

@@ -2,7 +2,8 @@ module Tests.Tests
 ( emptyBoard, gb2, gb3, gb4, gb5, gb6 ) 
   where
   import PrintInOutput
-  import CoreGame
+  import CoreGame 
+  import Solve
   emptyBoard :: GameBoard
   emptyBoard =
     [ [emptySmall, emptySmall, emptySmall]
