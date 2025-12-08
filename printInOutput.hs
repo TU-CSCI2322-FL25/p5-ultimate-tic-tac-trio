@@ -1,46 +1,43 @@
-module printInOutput
-( prettyPrint
-, readGame
-, showGame
-) where
+module PrintInOutput (prettyPrint, readGame, showGame) 
+  
+  where
 
   import CoreGame
   
   prettyPrint :: Game -> String
-  prettyPrint (board,player, _) = "The current player is " ++ show player ++ "\n" ++ unlines (comWhole board)
+  prettyPrint (board, player, _) = "The current player is " ++ show player ++ "\n" ++ unlines (comWhole board)
+    where
+    -- square to character
+    squareChar :: Square -> Char
+    squareChar (Full X) = 'X'
+    squareChar (Full O) = 'O'
+    squareChar Empty    = ' '
+
+    -- output a small board as 3 strings
+    smallBo :: SmallBoard -> [String]
+    smallBo (Finished (Win p)) = replicate 3 (replicate 3 (playerChar p))
       where
-          --square to character
-          quare :: Square -> Char
-          quare (Full X ) = 'X'
-          quare (Full O) = 'O'
-          quare Empty = ' '
-  
-          --outcome is a small board
-          smallBo :: SmallBoard -> [String]
-          smallBo (Finished( Win playa )) = replicate 3 (replicate 3 (bob playa))
-              where
-                  bob X = 'X'
-                  bob O = 'O'
-          smallBo (Finished Draw) = replicate 3 (replicate 3 'd')
-          smallBo (UnFinished squares) = map (map quare) squares
-  
-          --three small boards left to right
-          comRow :: [SmallBoard] -> [String]
-          comRow [a,b,c] = comLines (smallBo a) (smallBo b) (smallBo c)
-              where
-                  comLines :: [[Char]] -> [[Char]] -> [[Char]] -> [String]
-                  comLines [][][] = []
-                  comLines (j:j1) (h:h2) (k:k3) = (j ++ "|" ++ h ++ "|" ++ k): comLines j1 h2 k3
-                  comLines _ _ _ = error "all small boards must have same amount of rows"
-          comRow _ = error "each row of big boards must have 3 small ones"
-  
-          --combine whole thing (all rows on top of each other)
-          comWhole [j,h,k] = r1 ++ r2 ++ r3
-              where
-                  r1 = comRow j
-                  r2 = comRow h
-                  r3 = comRow k
-          comWhole _ = error "must be three by three"
+        playerChar X = 'X'
+        playerChar O = 'O'
+    smallBo (Finished Draw) = replicate 3 (replicate 3 'd')
+    smallBo (UnFinished squares) = map (map squareChar) squares
+
+    -- combine three small boards horizontally
+    comRow :: [SmallBoard] -> [String]
+    comRow [a, b, c] = comLines (smallBo a) (smallBo b) (smallBo c)
+      where
+        comLines :: [String] -> [String] -> [String] -> [String]
+        comLines [] [] [] = []
+        comLines (r1:rs1) (r2:rs2) (r3:rs3) =
+            (r1 ++ "|" ++ r2 ++ "|" ++ r3) : comLines rs1 rs2 rs3
+        comLines _ _ _ = error "all small boards must have the same number of rows"
+    comRow _ = error "each row of big board must have exactly 3 small boards"
+
+    -- combine big board (3 rows of 3 small boards)
+    comWhole :: [[SmallBoard]] -> [String]
+    comWhole [r1, r2, r3] = comRow r1 ++ comRow r2 ++ comRow r3
+    comWhole _ = error "big board must be 3×3"
+	  
   
   -- story 12
   readGame :: String -> Game --main 

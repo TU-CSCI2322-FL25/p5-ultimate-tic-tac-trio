@@ -1,7 +1,8 @@
 module Tests.Tests
-( emptyBoard, gb2, gb3, gb4, gb5, gb6 ) where
-
-import CoreGame
+( emptyBoard, gb2, gb3, gb4, gb5, gb6 ) 
+  where
+  import PrintInOutput
+  import CoreGame
   emptyBoard :: GameBoard
   emptyBoard =
     [ [emptySmall, emptySmall, emptySmall]
@@ -69,14 +70,7 @@ import CoreGame
       sb9 = Finished (Win O)
   
   gb6 = 
-      "X
-      (2,3)
-      XXX XXX XXX
-      0O0 00X X00
-      OOO OOO OOO
-      000 000 000
-      000 000 000
-      000 000 000
-      000 000 000
-      000 000 000
-      000 000 000"
+      "X \r( 2,3) \rXXX XXX XXX \r0O0 00X X00 \rOOO OOO OOO \r000 000 000 \r000 000 000 \r000 000 000 \r000 000 000 \r000 000 000 \r000 000 000"
+
+
+

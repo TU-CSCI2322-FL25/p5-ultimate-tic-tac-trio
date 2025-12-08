@@ -6,7 +6,7 @@ module CoreGame
 , addMove
 , legalMoves
 , checkWinner
-, gameStartSB, gameStartGB
+, gameStartSB, gameStartBB, gameStart
 ) where
 
 
@@ -24,7 +24,7 @@ module CoreGame
   
   data SmallBoard = UnFinished [[Square]] | Finished Winner deriving (Eq, Show)
   
-  type Move = (Int, Int)
+  type Move = (Integer, Integer)
   
   
   --helper function to change prev move and keep track like the player helper function
@@ -37,26 +37,26 @@ module CoreGame
   
   	updateBoard :: GameBoard -> Move -> Player -> GameBoard
   	updateBoard [[a,b,c],[d,e,f],[g,h,i]] (1, x) p = [[checkFinished(updateSquare a x p),b,c],[d,e,f],[g,h,i]]
-          updateBoard [[a,b,c],[d,e,f],[g,h,i]] (2, x) p = [[a,checkFinished(updateSquare b x p),c],[d,e,f],[g,h,i]]
-          updateBoard [[a,b,c],[d,e,f],[g,h,i]] (3, x) p = [[a,b,checkFinished(updateSquare c x p)],[d,e,f],[g,h,i]]
-          updateBoard [[a,b,c],[d,e,f],[g,h,i]] (4, x) p = [[a,b,c],[checkFinished(updateSquare d x p),e,f],[g,h,i]]
-          updateBoard [[a,b,c],[d,e,f],[g,h,i]] (5, x) p = [[a,b,c],[d,checkFinished(updateSquare e x p),f],[g,h,i]]
-          updateBoard [[a,b,c],[d,e,f],[g,h,i]] (6, x) p = [[a,b,c],[d,e,checkFinished(updateSquare f x p)],[g,h,i]]
-          updateBoard [[a,b,c],[d,e,f],[g,h,i]] (7, x) p = [[a,b,c],[d,e,f],[checkFinished(updateSquare g x p),h,i]]
-          updateBoard [[a,b,c],[d,e,f],[g,h,i]] (8, x) p = [[a,b,d],[d,e,f],[g,checkFinished(updateSquare h x p),i]]
-          updateBoard [[a,b,c],[d,e,f],[g,h,i]] (9, x) p = [[a,b,c],[d,e,f],[g,h,checkFinished(updateSquare i x p)]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (2, x) p = [[a,checkFinished(updateSquare b x p),c],[d,e,f],[g,h,i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (3, x) p = [[a,b,checkFinished(updateSquare c x p)],[d,e,f],[g,h,i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (4, x) p = [[a,b,c],[checkFinished(updateSquare d x p),e,f],[g,h,i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (5, x) p = [[a,b,c],[d,checkFinished(updateSquare e x p),f],[g,h,i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (6, x) p = [[a,b,c],[d,e,checkFinished(updateSquare f x p)],[g,h,i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (7, x) p = [[a,b,c],[d,e,f],[checkFinished(updateSquare g x p),h,i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (8, x) p = [[a,b,d],[d,e,f],[g,checkFinished(updateSquare h x p),i]]
+        updateBoard [[a,b,c],[d,e,f],[g,h,i]] (9, x) p = [[a,b,c],[d,e,f],[g,h,checkFinished(updateSquare i x p)]]
   
   
-  	updateSquare :: SmallBoard -> Int -> Player -> SmallBoard
+  	updateSquare :: SmallBoard -> Integer -> Player -> SmallBoard
   	updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 1 p = UnFinished [[Full p,b,c],[d,e,f],[g,h,i]] 
-          updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 2 p = UnFinished [[a,Full p,c],[d,e,f],[g,h,i]]
-          updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 3 p = UnFinished [[a,b,Full p],[d,e,f],[g,h,i]]
-          updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 4 p = UnFinished [[a,b,c],[Full p,e,f],[g,h,i]]
-          updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 5 p = UnFinished [[a,b,c],[d,Full p,f],[g,h,i]]
-          updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 6 p = UnFinished [[a,b,c],[d,e,Full p],[g,h,i]]
-          updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 7 p = UnFinished [[a,b,c],[d,e,f],[Full p,h,i]]
-          updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 8 p = UnFinished [[a,b,c],[d,e,f],[g,Full p,i]]
-          updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 9 p = UnFinished [[a,b,c],[d,e,f],[g,h,Full p]]
+        updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 2 p = UnFinished [[a,Full p,c],[d,e,f],[g,h,i]]
+        updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 3 p = UnFinished [[a,b,Full p],[d,e,f],[g,h,i]]
+        updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 4 p = UnFinished [[a,b,c],[Full p,e,f],[g,h,i]]
+        updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 5 p = UnFinished [[a,b,c],[d,Full p,f],[g,h,i]]
+        updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 6 p = UnFinished [[a,b,c],[d,e,Full p],[g,h,i]]
+        updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 7 p = UnFinished [[a,b,c],[d,e,f],[Full p,h,i]]
+        updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 8 p = UnFinished [[a,b,c],[d,e,f],[g,Full p,i]]
+        updateSquare (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) 9 p = UnFinished [[a,b,c],[d,e,f],[g,h,Full p]]
   	updateSquare _ x _ = error "Your move must be a number index must be 1 - 9"
   
   
@@ -74,52 +74,42 @@ module CoreGame
   nextPlaya O = X 
   
   
-  gameStartSB = [[Empty, Empty, Empty], [Empty, Empty, Empty], [Empty, Empty, Empty]]
-  gameStartGB = replicate 3 (replicate 3 gameStartSB)
-  
+  gameStartSB = UnFinished [[Empty, Empty, Empty], [Empty, Empty, Empty], [Empty, Empty, Empty]]
+  gameStartBB = replicate 3 (replicate 3 gameStartSB)
+  gameStart = (gameStartBB, X, (0,0))
+
   checkWinner :: Game -> Maybe Winner
   checkWinner (game, _, _) = bigBoardWin game
     where
-      bigBoardWin :: GameBoard -> Maybe Winner
-      bigBoardWin [[a,b,c], [d,e,f], [g,h,i]] =
-          let
-              -- Extract winner of a sub-board if it's finished
-              eval :: SmallBoard -> Maybe Player
-              eval (Finished (Win p)) = Just p
-              eval _                  = Nothing
-  
-              squares =
-                  [ [a,b,c], [d,e,f], [g,h,i]     -- rows
-                  , [a,d,g], [b,e,h], [c,f,i]     -- columns
-                  , [a,e,i], [c,e,g]              -- diagonals
-                  ]
-  
-              getVals = map eval
-  
-              three p = [Just p, Just p, Just p]
-  
-              boardFull =
-                  all (\s -> case s of Finished _ -> True; _ -> False)
-                      [a,b,c,d,e,f,g,h,i]
-  
-          in case () of
-              _ | any (\l -> getVals l == three X) squares
-                    -> Just (Win X)
+    bigBoardWin :: GameBoard -> Maybe Winner
+    bigBoardWin [[a,b,c], [d,e,f], [g,h,i]] =
+      let
+        eval (Finished (Win p)) = Just p
+        eval _                  = Nothing
 
-              | any (\l -> getVals l == three O) squares
-                  -> Just (Win O)
+        linesOfBoards =
+            [ [a,b,c], [d,e,f], [g,h,i]
+            , [a,d,g], [b,e,h], [c,f,i]
+            , [a,e,i], [c,e,g]
+            ]
 
-              | not boardFull
-                  -> Nothing
+        winnerFor p = any (all (== Just p) . map eval) linesOfBoards
 
-              | otherwise
-                  -> Just Draw
+        boardFull =
+            all (\s -> case s of Finished _ -> True; _ -> False)
+                [a,b,c,d,e,f,g,h,i]
 
-legalMoves :: Game -> [Move]
-legalMoves (board, _, (_, sq)) = if checkSB sq board then [(x,y) | (x,y) <- moves, x == sq, checkSQ y (getSB sq board)] else [(x,y) | (x,y) <- moves, checkSB x board, checkSQ y (getSB x board)]
+      in case () of
+          _ | winnerFor X -> Just (Win X)
+            | winnerFor O -> Just (Win O)
+            | not boardFull -> Nothing
+            | otherwise -> Just Draw
+
+  legalMoves :: Game -> [Move]
+  legalMoves (board, _, (_, sq)) = if checkSB sq board then [(x,y) | (x,y) <- moves, x == sq, checkSQ y (getSB sq board)] else [(x,y) | (x,y) <- moves, checkSB x board, checkSQ y (getSB x board)]
     where 
 
-    checkSQ :: Int -> SmallBoard -> Bool
+    checkSQ :: Integer -> SmallBoard -> Bool
     checkSQ x (UnFinished [[a,b,c],[d,e,f],[g,h,i]])
       | x == 1 && a == Empty = True
       | x == 2 && b == Empty = True
@@ -133,7 +123,7 @@ legalMoves (board, _, (_, sq)) = if checkSB sq board then [(x,y) | (x,y) <- move
       | otherwise                       	     = False
 
 
-    getSB :: Int -> GameBoard -> SmallBoard
+    getSB :: Integer -> GameBoard -> SmallBoard
     getSB 1 [[a,b,c],[d,e,f],[g,h,i]] = a
     getSB 2 [[a,b,c],[d,e,f],[g,h,i]] = b
     getSB 3 [[a,b,c],[d,e,f],[g,h,i]] = c
@@ -147,7 +137,7 @@ legalMoves (board, _, (_, sq)) = if checkSB sq board then [(x,y) | (x,y) <- move
 
     moves = [(x,y) | x <- [1..9], y <- [1..9]] 
 
-    checkSB :: Int -> GameBoard -> Bool
+    checkSB :: Integer -> GameBoard -> Bool
     checkSB 1 [[(UnFinished _),b,c],[d,e,f],[g,h,i]] = True
     checkSB 2 [[a,(UnFinished y),c],[d,e,f],[g,h,i]] = True
     checkSB 3 [[a,b,(UnFinished y)],[d,e,f],[g,h,i]] = True
