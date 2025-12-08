@@ -4,6 +4,8 @@ module Solve
 ) where
 
 import CoreGame
+import Data.List (maximumBy, minimumBy)
+import Data.Ord  (comparing)
 
 ---story 9
 
@@ -100,3 +102,36 @@ scoreInSmallboard (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) =
 --1 point for 2 smallboard wins in a row
 -- .5 point for 2 boxes in a row per smallboard that has not been won
 --end story 17
+
+-- 18
+
+-- whoMightWin game depth = (rating, bestMove)
+whoMightWin :: Game -> Int -> (Rating, Move)
+whoMightWin g depth =
+    let moves = legalMoves g
+    in if null moves
+        then (rateGame g, (0,0))   -- no moves ⇒ evaluate
+        else maximumByPlayer g depth moves
+
+-- Player X maximizes, Player O minimizes
+maximumByPlayer :: Game -> Int -> [Move] -> (Rating, Move)
+maximumByPlayer g@(board, player, premove) depth moves
+    | depth == 0 = (rateGame g, head moves)
+    | otherwise  =
+        let scored = [( minimax (addMove g m) (depth-1), m ) | m <- moves ]
+        in case player of
+             X -> maximumBy (comparing fst) scored
+             O -> minimumBy (comparing fst) scored
+
+-- return a Rating only
+minimax :: Game -> Int -> Rating
+minimax g@(board, player, premove) depth
+    | terminal g   = rateGame g
+    | depth == 0   = rateGame g
+    | otherwise    =
+        let moves = legalMoves g
+            nextRatings = [ minimax (addMove g m) (depth-1) | m <- moves ]
+        in case player of
+             X -> maximum nextRatings
+             O -> minimum nextRatings
+
