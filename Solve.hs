@@ -49,6 +49,8 @@ bestMove g@(board, player, premove)
         drawMoves = [x | x <- moves, outcome x == Draw]
 -- end story 10
 
+type Rating = Int
+
 rateGame :: Game -> Rating
 rateGame (board,_,_) =
     case checkWinner (board, X, (0,0)) of
