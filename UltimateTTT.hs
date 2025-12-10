@@ -461,3 +461,96 @@ scoreInSmallboard (UnFinished [[a,b,c],[d,e,f],[g,h,i]]) =
 --1 point for 2 smallboard wins in a row
 -- .5 point for 2 boxes in a row per smallboard that has not been won
 --end story 17
+`
+-- 18 & 19
+whoMightWin :: Game -> Int -> (Rating, Move)
+whoMightWin g depth =
+    let moves = legalMoves g
+    in if null moves
+        then (rateGame g, (0,0))
+        else chooseBest g depth moves
+
+chooseBest :: Game -> Int -> [Move] -> (Rating, Move)
+chooseBest g@(board, player, premove) depth moves =
+    case player of
+        X -> maximize g depth moves  -- X tries to reach rating = 10
+        O -> minimize g depth moves  -- O tries to reach rating = -10
+
+maximize :: Game -> Int -> [Move] -> (Rating, Move)
+maximize _ _ [] = error "maximize: no moves"
+
+maximize g depth (m:ms) =
+    let r = minimax (addMove g m) (depth-1)
+    in if r == 10
+           then (10, m)              -- PERFECT for X → stop immediately
+           else compareMore r m ms   -- otherwise check more
+  where
+    compareMore bestR bestM [] = (bestR, bestM)
+    compareMore bestR bestM (move:rest) =
+        let r = minimax (addMove g move) (depth-1)
+        in if r == 10
+              then (10, move)        -- stop early!
+              else if r > bestR
+                      then compareMore r move rest
+                      else compareMore bestR bestM rest
+
+minimize :: Game -> Int -> [Move] -> (Rating, Move)
+minimize _ _ [] = error "minimize: no moves"
+
+minimize g depth (m:ms) =
+    let r = minimax (addMove g m) (depth-1)
+    in if r == -10
+           then (-10, m)             -- PERFECT for O → stop immediately
+           else compareMore r m ms
+  where
+    compareMore bestR bestM [] = (bestR, bestM)
+    compareMore bestR bestM (move:rest) =
+        let r = minimax (addMove g move) (depth-1)
+        in if r == -10
+              then (-10, move)
+              else if r < bestR
+                      then compareMore r move rest
+                      else compareMore bestR bestM rest
+
+minimax :: Game -> Int -> Rating
+minimax g depth
+    | terminal g = rateGame g
+    | depth == 0 = rateGame g
+    | otherwise  =
+        let moves = legalMoves g in
+        case moves of
+            [] -> rateGame g
+            _  ->
+                case currentPlayer g of
+                    X -> maxRating g depth moves
+                    O -> minRating g depth moves
+
+maxRating :: Game -> Int -> [Move] -> Rating
+maxRating _ _ [] = error "maxRating: empty"
+maxRating g depth (m:ms) =
+    let r = minimax (addMove g m) (depth-1)
+    in if r == 10 then 10 else scan r ms
+  where
+    scan best [] = best
+    scan best (move:rest) =
+        let r = minimax (addMove g move) (depth-1)
+        in if r == 10
+              then 10
+              else scan (max best r) rest
+
+
+minRating :: Game -> Int -> [Move] -> Rating
+minRating _ _ [] = error "minRating: empty"
+minRating g depth (m:ms) =
+    let r = minimax (addMove g m) (depth-1)
+    in if r == -10 then -10 else scan r ms
+  where
+    scan best [] = best
+    scan best (move:rest) =
+        let r = minimax (addMove g move) (depth-1)
+        in if r == -10
+              then -10
+              else scan (min best r) rest
+
+currentPlayer :: Game -> Player
+currentPlayer (_, p, _) = p
