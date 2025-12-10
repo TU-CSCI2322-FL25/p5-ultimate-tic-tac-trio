@@ -186,11 +186,11 @@ defaultOptions = Options False Nothing False Nothing False False Nothing
 
 options :: [OptDescr (Options -> Options)]
 options =
-  [ Option ['w'] ["winner"]     (NoArg (\opts -> opts { optWinner = True })) "Show best move using exhaustive search"
-  , Option ['d'] ["depth"]      (ReqArg (\d opts -> opts { optDepth = Just (read d) }) "NUM") "Set depth cutoff (ignored with -w)"
-  , Option ['h'] ["help"]       (NoArg (\opts -> opts { optHelp = True })) "Show this help message"
-  , Option ['m'] ["move"]       (ReqArg (\s opts -> opts { optMove = Just (parseMove s) }) "MOVE") "Apply a move (format: x,y)"
-  , Option ['v'] ["verbose"]    (NoArg (\opts -> opts { optVerbose = True })) "Verbose output"
+  [ Option ['w'] ["winner"]      (NoArg (\opts -> opts { optWinner = True })) "Show best move using exhaustive search"
+  , Option ['d'] ["depth"]       (ReqArg (\d opts -> opts { optDepth = Just (read d) }) "NUM") "Set depth cutoff (ignored with -w)"
+  , Option ['h'] ["help"]        (NoArg (\opts -> opts { optHelp = True })) "Show this help message"
+  , Option ['m'] ["move"]        (ReqArg (\s opts -> opts { optMove = Just (parseMove s) }) "MOVE") "Apply a move (format: x,y)"
+  , Option ['v'] ["verbose"]     (NoArg (\opts -> opts { optVerbose = True })) "Verbose output"
   , Option ['i'] ["interactive"](NoArg (\opts -> opts { optInteractive = True })) "Play interactively against the computer"
   ]
 
@@ -242,6 +242,7 @@ applyMove opts game = case optMove opts of
 
 showHelp :: IO ()
 showHelp = do
+    -- Ensure exact first line "Usage:" for test runner
     putStrLn "Usage: game [OPTIONS] [FILE]"
     putStrLn $ usageInfo "" options
     putStrLn "Examples:"
@@ -249,7 +250,6 @@ showHelp = do
     putStrLn "  game -d 3 -i                   # Play interactively with depth cutoff 3"
     putStrLn "  game -m 1,5 -v mygame.txt      # Apply move (1,5) and pretty print"
     putStrLn "  game -h                         # Show this help message"
-    hFlush stdout
     exitSuccess
 
 --------------------------------------------------------------------------------
@@ -279,7 +279,6 @@ interactiveLoop game depth = do
 
 main :: IO ()
 main = do
-    -- Ensure UTF-8 output for test runner
     hSetEncoding stdout utf8
     hSetEncoding stderr utf8
 
@@ -287,17 +286,15 @@ main = do
     let (actions, files, errs) = getOpt Permute options args
     let opts = foldl (flip id) defaultOptions actions
 
+    -- Show help if requested or if there are errors
     when (optHelp opts) showHelp
     when (not (null errs)) $ do
         mapM_ putStrLn errs
         showHelp
 
-    -- Conflict warning: -w and -d together
-    let conflict = optWinner opts && isJust (optDepth opts)
-    when conflict $ do
+    -- ⚠️ Conflict warning first, before any other output
+    when (optWinner opts && isJust (optDepth opts)) $
         putStrLn "Warning: -d <num> has no effect when -w is used (exhaustive search overrides depth)."
-        hFlush stdout
-        -- Do NOT exit here so test runner can capture warning
 
     -- Determine input file
     file <- case (files, optFile opts) of
