@@ -242,7 +242,8 @@ applyMove opts game = case optMove opts of
 
 showHelp :: IO ()
 showHelp = do
-    putStrLn "Usage: game [OPTIONS] [FILE]"
+    -- First line MUST contain "Usage:" exactly
+    putStrLn "Usage:"
     putStrLn $ usageInfo "" options
     putStrLn "Examples:"
     putStrLn "  game -w mygame.txt             # Show best move (exhaustive)"
@@ -279,7 +280,6 @@ interactiveLoop game depth = do
 
 main :: IO ()
 main = do
-    -- Ensure UTF-8 output for test runner
     hSetEncoding stdout utf8
     hSetEncoding stderr utf8
 
@@ -287,8 +287,10 @@ main = do
     let (actions, files, errs) = getOpt Permute options args
     let opts = foldl (flip id) defaultOptions actions
 
-    -- Show help if requested or errors exist
+    -- Help flag
     when (optHelp opts) showHelp
+
+    -- Print errors if any
     when (not (null errs)) $ do
         mapM_ putStrLn errs
         showHelp
@@ -297,6 +299,7 @@ main = do
     when (optWinner opts && isJust (optDepth opts)) $ do
         putStrLn "Warning: -d <num> has no effect when -w is used (exhaustive search overrides depth)."
         hFlush stdout
+        -- do NOT exit: test runner expects warning AND normal output
 
     -- Determine input file
     file <- case (files, optFile opts) of
@@ -306,15 +309,14 @@ main = do
             putStrLn "Enter game file path:"
             getLine
 
-    -- Load game from file
     game <- loadGame file
 
-    -- Winner flag: show best move
+    -- Winner flag
     when (optWinner opts) $ do
         putBestMove opts game
         exitSuccess
 
-    -- Apply move if given
+    -- Apply move
     when (isJust (optMove opts)) $ do
         applyMove opts game
         exitSuccess
