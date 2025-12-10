@@ -162,7 +162,7 @@ import System.Console.GetOpt
 import System.Exit
 import Data.Maybe
 import CoreGame
-import printInOutput
+import PrintInOutput
 import Solve
 import Control.Monad (when, unless)
 
@@ -328,4 +328,3 @@ main = do
                     else do
                         putStrLn $ "Best move: " ++ show mv
                         putStrLn $ "Outcome (depth " ++ show depth ++ "): " ++ maybe "Unknown" show outcome
-                        
