@@ -226,7 +226,3 @@ runFlagTests = do
         else putStrLn "✗ -h output missing Usage line"
 
     putStrLn "\nAll flag tests complete."
-
-    
-main :: IO ()
-main = runFlagTests
