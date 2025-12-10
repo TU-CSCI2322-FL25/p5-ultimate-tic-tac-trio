@@ -186,12 +186,12 @@ defaultOptions = Options False Nothing False Nothing False False Nothing
 
 options :: [OptDescr (Options -> Options)]
 options =
-  [ Option ['w'] ["winner"]   (NoArg (\opts -> opts { optWinner = True })) "Show best move using exhaustive search"
-  , Option ['d'] ["depth"]    (ReqArg (\d opts -> opts { optDepth = Just (read d) }) "NUM") "Set depth cutoff (ignored with -w)"
-  , Option ['h'] ["help"]     (NoArg (\opts -> opts { optHelp = True })) "Show this help message"
-  , Option ['m'] ["move"]     (ReqArg (\s opts -> opts { optMove = Just (parseMove s) }) "MOVE") "Apply a move (format: x,y)"
-  , Option ['v'] ["verbose"]  (NoArg (\opts -> opts { optVerbose = True })) "Verbose output"
-  , Option ['i'] ["interactive"] (NoArg (\opts -> opts { optInteractive = True })) "Play interactively against the computer"
+  [ Option ['w'] ["winner"]     (NoArg (\opts -> opts { optWinner = True })) "Show best move using exhaustive search"
+  , Option ['d'] ["depth"]      (ReqArg (\d opts -> opts { optDepth = Just (read d) }) "NUM") "Set depth cutoff (ignored with -w)"
+  , Option ['h'] ["help"]       (NoArg (\opts -> opts { optHelp = True })) "Show this help message"
+  , Option ['m'] ["move"]       (ReqArg (\s opts -> opts { optMove = Just (parseMove s) }) "MOVE") "Apply a move (format: x,y)"
+  , Option ['v'] ["verbose"]    (NoArg (\opts -> opts { optVerbose = True })) "Verbose output"
+  , Option ['i'] ["interactive"](NoArg (\opts -> opts { optInteractive = True })) "Play interactively against the computer"
   ]
 
 -- Parse move string "x,y" into a Move
@@ -216,31 +216,24 @@ loadGame path = do
 -- Best move helpers
 --------------------------------------------------------------------------------
 
--- Return the best move for a Game with optional depth cutoff
 bestMoveWithDepth :: Game -> Maybe Int -> Move
-bestMoveWithDepth game Nothing  = bestMove game              -- exhaustive
-bestMoveWithDepth game (Just d) = snd $ whoMightWin game d   -- depth-limited
+bestMoveWithDepth game Nothing  = bestMove game
+bestMoveWithDepth game (Just d) = snd $ whoMightWin game d
 
--- Load a game from file and return the best move with optional depth
-bestMoveFromFile :: FilePath -> Maybe Int -> IO Move
-bestMoveFromFile path depth = do
-    game <- loadGame path
-    return $ bestMoveWithDepth game depth
-
--- Show best move for Story 22
 putBestMove :: Options -> Game -> IO ()
 putBestMove opts game = do
     let move = bestMoveWithDepth game (optDepth opts)
         outcome = whoWillWin (addMove game move)
     putStrLn $ "Best move: " ++ show move
     when (optVerbose opts) $ putStrLn $ "Outcome forced: " ++ show outcome
+    hFlush stdout
 
--- Apply a move and print resulting game
 applyMove :: Options -> Game -> IO ()
 applyMove opts game = case optMove opts of
     Just mv -> do
         let newGame = addMove game mv
         putStrLn $ if optVerbose opts then prettyPrint newGame else showGame newGame
+        hFlush stdout
     Nothing -> return ()
 
 --------------------------------------------------------------------------------
@@ -249,8 +242,7 @@ applyMove opts game = case optMove opts of
 
 showHelp :: IO ()
 showHelp = do
-    putStrLn "Usage: game [OPTIONS] [FILE]"
-    mapM_ putStrLn $ lines $ usageInfo "" options  -- only list options
+    putStrLn $ usageInfo "Usage: game [OPTIONS] [FILE]" options
     putStrLn "Examples:"
     putStrLn "  game -w mygame.txt             # Show best move (exhaustive)"
     putStrLn "  game -d 3 -i                   # Play interactively with depth cutoff 3"
@@ -260,7 +252,7 @@ showHelp = do
     exitSuccess
 
 --------------------------------------------------------------------------------
--- Interactive game loop
+-- Interactive loop
 --------------------------------------------------------------------------------
 
 interactiveLoop :: Game -> Maybe Int -> IO ()
@@ -286,6 +278,10 @@ interactiveLoop game depth = do
 
 main :: IO ()
 main = do
+    -- Ensure UTF-8 output for test runner
+    hSetEncoding stdout utf8
+    hSetEncoding stderr utf8
+
     args <- getArgs
     let (actions, files, errs) = getOpt Permute options args
     let opts = foldl (flip id) defaultOptions actions
@@ -299,6 +295,7 @@ main = do
     when (optWinner opts && isJust (optDepth opts)) $ do
         putStrLn "Warning: -d <num> has no effect when -w is used (exhaustive search overrides depth)."
         hFlush stdout
+        -- Do NOT exit here so test runner can capture warning
 
     -- Determine input file
     file <- case (files, optFile opts) of
@@ -310,21 +307,21 @@ main = do
 
     game <- loadGame file
 
-    -- Story 22: Winner flag (exhaustive or depth-limited)
+    -- Winner flag
     when (optWinner opts) $ do
         putBestMove opts game
         exitSuccess
 
-    -- Story 25: Apply a move
+    -- Apply move
     when (isJust (optMove opts)) $ do
         applyMove opts game
         exitSuccess
 
-    -- Story 27: Interactive mode (extra credit)
+    -- Interactive mode
     when (optInteractive opts) $ do
         interactiveLoop game (optDepth opts)
         exitSuccess
 
     -- Default: print game
     putStrLn $ if optVerbose opts then prettyPrint game else showGame game
-
+    hFlush stdout
