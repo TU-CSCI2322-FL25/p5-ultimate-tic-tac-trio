@@ -76,7 +76,7 @@ module Tests.Tests
 
 -}
 
-module Test
+module Tests
 ( emptyBoard, gb2, gb3, gb4, gb5, gb6
 , runFlagTests
 ) where
