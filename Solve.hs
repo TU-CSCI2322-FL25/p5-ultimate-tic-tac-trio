@@ -1,6 +1,9 @@
 module Solve
 ( whoWillWin
 , bestMove
+,terminal
+,whoMightWin
+,result
 ) where
 
 import CoreGame
