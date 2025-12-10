@@ -249,15 +249,15 @@ applyMove opts game = case optMove opts of
 
 showHelp :: IO ()
 showHelp = do
-    putStrLn $ usageInfo header options
+    putStrLn "Usage: game [OPTIONS] [FILE]"
+    mapM_ putStrLn $ lines $ usageInfo "" options  -- only list options
     putStrLn "Examples:"
     putStrLn "  game -w mygame.txt             # Show best move (exhaustive)"
     putStrLn "  game -d 3 -i                   # Play interactively with depth cutoff 3"
     putStrLn "  game -m 1,5 -v mygame.txt      # Apply move (1,5) and pretty print"
     putStrLn "  game -h                         # Show this help message"
+    hFlush stdout
     exitSuccess
-  where
-    header = "Usage: game [OPTIONS] [FILE]"
 
 --------------------------------------------------------------------------------
 -- Interactive game loop
@@ -296,8 +296,9 @@ main = do
         showHelp
 
     -- Conflict warning: -w and -d together
-    when (optWinner opts && isJust (optDepth opts)) $
+    when (optWinner opts && isJust (optDepth opts)) $ do
         putStrLn "Warning: -d <num> has no effect when -w is used (exhaustive search overrides depth)."
+        hFlush stdout
 
     -- Determine input file
     file <- case (files, optFile opts) of
@@ -326,3 +327,4 @@ main = do
 
     -- Default: print game
     putStrLn $ if optVerbose opts then prettyPrint game else showGame game
+
