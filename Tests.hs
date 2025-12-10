@@ -91,10 +91,10 @@ import System.Directory
 import System.IO
 import Control.Exception
 import Data.List (isInfixOf)
-
+import Data.Maybe (isJust)
 
 --------------------------------------------------------------------------------
--- Your existing game boards (UNTOUCHED)
+-- Your existing game boards
 --------------------------------------------------------------------------------
 
 emptyBoard :: GameBoard
@@ -163,16 +163,14 @@ gb5 =
     sb8 = UnFinished [[Empty,Empty,Full O],[Full X,Empty,Empty],[Empty,Empty,Empty]]
     sb9 = Finished (Win O)
 
+gb6 :: String
 gb6 =
     "X \r( 2,3) \rXXX XXX XXX \r0O0 00X X00 \rOOO OOO OOO \r000 000 000 \r000 000 000 \r000 000 000 \r000 000 000 \r000 000 000 \r000 000 000"
 
-
-
 --------------------------------------------------------------------------------
--- NEW: Automated flag tests
+-- Helpers to run external commands
 --------------------------------------------------------------------------------
 
--- Run command and capture stdout
 runCmd :: String -> IO String
 runCmd cmd = do
     putStrLn $ "\nRunning: " ++ cmd
@@ -180,17 +178,16 @@ runCmd cmd = do
     putStrLn out
     return out
 
-
--- Write a GameBoard + metadata into your input file format
 writeGameFile :: FilePath -> Player -> Move -> GameBoard -> IO ()
 writeGameFile path player pmove board =
     writeFile path (showGame (board, player, pmove))
 
-
+--------------------------------------------------------------------------------
 -- Main entry point for flag tests
+--------------------------------------------------------------------------------
+
 runFlagTests :: IO ()
 runFlagTests = do
-
     createDirectoryIfMissing True "tests"
 
     putStrLn "\n== Writing test files =="
@@ -200,41 +197,29 @@ runFlagTests = do
 
     putStrLn "\n== Testing flags =="
 
-    ------------------------------------------------------------
-    -- 1. Test -w
-    ------------------------------------------------------------
+    -- 1. Test -w (winner)
     out1 <- runCmd "./game -w tests/empty.txt"
     putStrLn "✓ -w works"
 
-    ------------------------------------------------------------
-    -- 2. Test -d
-    ------------------------------------------------------------
+    -- 2. Test -d (depth)
     out2 <- runCmd "./game -d 3 tests/empty.txt"
     putStrLn "✓ -d works"
 
-    ------------------------------------------------------------
     -- 3. Test -w -d (should warn)
-    ------------------------------------------------------------
     out3 <- runCmd "./game -w -d 4 tests/empty.txt"
     if "Warning" `isInfixOf` out3
         then putStrLn "✓ -w -d conflict warning works"
         else putStrLn "✗ Missing conflict warning!"
 
-    ------------------------------------------------------------
     -- 4. Test -m <move>
-    ------------------------------------------------------------
     out4 <- runCmd "./game -m 1,1 tests/empty.txt"
     putStrLn "✓ -m works"
 
-    ------------------------------------------------------------
-    -- 5. Test -v (pretty print)
-    ------------------------------------------------------------
+    -- 5. Test -v (verbose / pretty print)
     out5 <- runCmd "./game -v tests/empty.txt"
     putStrLn "✓ -v works"
 
-    ------------------------------------------------------------
-    -- 6. Test -h
-    ------------------------------------------------------------
+    -- 6. Test -h (help)
     out6 <- runCmd "./game -h"
     if "Usage:" `isInfixOf` out6
         then putStrLn "✓ -h works"
