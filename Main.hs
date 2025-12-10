@@ -167,7 +167,10 @@ import CoreGame
 import PrintInOutput
 import Solve
 
+--------------------------------------------------------------------------------
 -- Command-line options
+--------------------------------------------------------------------------------
+
 data Options = Options
   { optWinner      :: Bool
   , optDepth       :: Maybe Int
@@ -197,7 +200,10 @@ parseMove s = case span (/= ',') s of
     (a, ',':b) -> (read a, read b)
     _          -> error "Invalid move format, expected x,y"
 
--- Write and load helpers
+--------------------------------------------------------------------------------
+-- File I/O helpers
+--------------------------------------------------------------------------------
+
 writeGame :: Game -> FilePath -> IO ()
 writeGame x path = writeFile path (showGame x)
 
@@ -206,10 +212,25 @@ loadGame path = do
     stuff <- readFile path
     return (readGame stuff)
 
+--------------------------------------------------------------------------------
+-- Best move helpers
+--------------------------------------------------------------------------------
+
+-- Return the best move for a Game with optional depth cutoff
+bestMoveWithDepth :: Game -> Maybe Int -> Move
+bestMoveWithDepth game Nothing  = bestMove game              -- exhaustive
+bestMoveWithDepth game (Just d) = snd $ whoMightWin game d   -- depth-limited
+
+-- Load a game from file and return the best move with optional depth
+bestMoveFromFile :: FilePath -> Maybe Int -> IO Move
+bestMoveFromFile path depth = do
+    game <- loadGame path
+    return $ bestMoveWithDepth game depth
+
 -- Show best move for Story 22
 putBestMove :: Options -> Game -> IO ()
 putBestMove opts game = do
-    let move = bestMove game
+    let move = bestMoveWithDepth game (optDepth opts)
         outcome = whoWillWin (addMove game move)
     putStrLn $ "Best move: " ++ show move
     when (optVerbose opts) $ putStrLn $ "Outcome forced: " ++ show outcome
@@ -222,7 +243,10 @@ applyMove opts game = case optMove opts of
         putStrLn $ if optVerbose opts then prettyPrint newGame else showGame newGame
     Nothing -> return ()
 
+--------------------------------------------------------------------------------
 -- Help message
+--------------------------------------------------------------------------------
+
 showHelp :: IO ()
 showHelp = do
     putStrLn $ usageInfo header options
@@ -235,7 +259,31 @@ showHelp = do
   where
     header = "Usage: game [OPTIONS] [FILE]"
 
+--------------------------------------------------------------------------------
+-- Interactive game loop
+--------------------------------------------------------------------------------
+
+interactiveLoop :: Game -> Maybe Int -> IO ()
+interactiveLoop game depth = do
+    putStrLn $ prettyPrint game
+    if terminal game
+        then putStrLn $ "Game over! Winner: " ++ show (result game)
+        else do
+            putStrLn "Your move (format x,y):"
+            moveStr <- getLine
+            let move = parseMove moveStr
+            let newGame = addMove game move
+            let aiMove = case depth of
+                            Just d -> snd $ whoMightWin newGame d
+                            Nothing -> bestMove newGame
+            let finalGame = addMove newGame aiMove
+            putStrLn $ "AI plays: " ++ show aiMove
+            interactiveLoop finalGame depth
+
+--------------------------------------------------------------------------------
 -- Main
+--------------------------------------------------------------------------------
+
 main :: IO ()
 main = do
     args <- getArgs
@@ -261,7 +309,7 @@ main = do
 
     game <- loadGame file
 
-    -- Story 22: Winner flag (exhaustive search)
+    -- Story 22: Winner flag (exhaustive or depth-limited)
     when (optWinner opts) $ do
         putBestMove opts game
         exitSuccess
@@ -278,21 +326,3 @@ main = do
 
     -- Default: print game
     putStrLn $ if optVerbose opts then prettyPrint game else showGame game
-
--- Interactive game loop
-interactiveLoop :: Game -> Maybe Int -> IO ()
-interactiveLoop game depth = do
-    putStrLn $ prettyPrint game
-    if isJust (checkWinner game)
-        then putStrLn $ "Game over! Winner: " ++ show (result game)
-        else do
-            putStrLn "Your move (format x,y):"
-            moveStr <- getLine
-            let move = parseMove moveStr
-            let newGame = addMove game move
-            let aiMove = case depth of
-                            Just d -> snd $ whoMightWin newGame d
-                            Nothing -> bestMove newGame
-            let finalGame = addMove newGame aiMove
-            putStrLn $ "AI plays: " ++ show aiMove
-            interactiveLoop finalGame depth
