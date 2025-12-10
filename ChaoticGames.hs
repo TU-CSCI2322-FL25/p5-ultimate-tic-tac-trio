@@ -1,6 +1,14 @@
-chaoticGame1 :: Game
-chaoticGame1 =
-  ( board, X, (0,2) )
+module ChaoticGames
+  ( chaos1, chaos2, chaos3,
+  ) where
+
+import PrintInOutput
+import CoreGame
+import Solve
+
+chaos1 :: Game
+chaos1 =
+  ( board, X, (1,3) )
   where
     emptySB = UnFinished (replicate 3 (replicate 3 Empty))
     board =
@@ -33,9 +41,9 @@ chaoticGame1 =
                      [Full X, Empty, Full O]]]
       ]
 
-chaoticGame2 :: Game
-chaoticGame2 =
-  ( board, O, (1,0))
+chaos2 :: Game
+chaos2 =
+  ( board, O, (2,1))
   where
     emptySB = UnFinished (replicate 3 (replicate 3 Empty))
     board =
@@ -68,9 +76,9 @@ chaoticGame2 =
                      [Empty, Full O, Empty]]]
       ]
 
-chaoticGame3 :: Game
-chaoticGame3 =
-  ( board, X, (2,1))
+chaos3 :: Game
+chaos3 =
+  ( board, X, (3,2))
   where
     emptySB = UnFinished (replicate 3 (replicate 3 Empty))
     board =

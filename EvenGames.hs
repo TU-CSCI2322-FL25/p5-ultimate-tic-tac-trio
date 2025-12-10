@@ -1,6 +1,14 @@
-evenGame1 :: Game
-evenGame1 =
-  ( board, X, (0,0) )
+module EvenGames
+  ( even1, even2, even3,
+  ) where
+
+import PrintInOutput
+import CoreGame
+import Solve
+
+even1 :: Game
+even1 =
+  ( board, X, (1,1) )
   where
     emptySB = UnFinished (replicate 3 (replicate 3 Empty))
     board =
@@ -23,9 +31,9 @@ evenGame1 =
                      [Full O, Empty, Empty]]]
       ]
 
-evenGame2 :: Game
-evenGame2 =
-  ( board, O, (1,1))
+even2 :: Game
+even2 =
+  ( board, O, (2,2))
   where
     emptySB = UnFinished (replicate 3 (replicate 3 Empty))
     board =
@@ -48,9 +56,9 @@ evenGame2 =
          emptySB]
       ]
 
-evenGame3 :: Game
-evenGame3 =
-  ( board, X, (2,2))
+even3 :: Game
+even3 =
+  ( board, X, (3,3))
   where
     emptySB = UnFinished (replicate 3 (replicate 3 Empty))
     board =
