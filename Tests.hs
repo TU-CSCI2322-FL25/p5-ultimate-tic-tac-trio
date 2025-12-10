@@ -77,9 +77,9 @@ module Tests.Tests
 -}
 
 module Tests
-( emptyBoard, gb2, gb3, gb4, gb5, gb6
-, runFlagTests
-) where
+  ( emptyBoard, gb2, gb3, gb4, gb5, gb6
+  , runFlagTests
+  ) where
 
 import PrintInOutput
 import CoreGame
@@ -168,7 +168,7 @@ gb6 =
     "X \r( 2,3) \rXXX XXX XXX \r0O0 00X X00 \rOOO OOO OOO \r000 000 000 \r000 000 000 \r000 000 000 \r000 000 000 \r000 000 000 \r000 000 000"
 
 --------------------------------------------------------------------------------
--- Helpers  run external commands
+-- Helpers to run external commands
 --------------------------------------------------------------------------------
 
 runCmd :: String -> IO String
@@ -188,6 +188,8 @@ writeGameFile path player pmove board =
 
 runFlagTests :: IO ()
 runFlagTests = do
+    putStrLn "=== Running Flag Tests ==="
+
     createDirectoryIfMissing True "tests"
 
     putStrLn "\n== Writing test files =="
@@ -199,30 +201,30 @@ runFlagTests = do
 
     -- 1. Test -w (winner)
     out1 <- runCmd "./game.exe -w tests/empty.txt"
-    putStrLn "✓ -w works"
+    putStrLn "[OK] -w works"
 
     -- 2. Test -d (depth)
-    out2 <- runCmd "./game -d 3 tests/empty.txt"
-    putStrLn "✓ -d works"
+    out2 <- runCmd "./game.exe -d 3 tests/empty.txt"
+    putStrLn "[OK] -d works"
 
     -- 3. Test -w -d (should warn)
-    out3 <- runCmd "./game -w -d 4 tests/empty.txt"
+    out3 <- runCmd "./game.exe -w -d 4 tests/empty.txt"
     if "Warning" `isInfixOf` out3
-        then putStrLn "✓ -w -d conflict warning works"
-        else putStrLn "✗ Missing conflict warning!"
+        then putStrLn "[OK] -w -d conflict warning works"
+        else putStrLn "[FAIL] Missing conflict warning!"
 
     -- 4. Test -m <move>
-    out4 <- runCmd "./game -m 1,1 tests/empty.txt"
-    putStrLn "✓ -m works"
+    out4 <- runCmd "./game.exe -m 1,1 tests/empty.txt"
+    putStrLn "[OK] -m works"
 
     -- 5. Test -v (verbose / pretty print)
-    out5 <- runCmd "./game -v tests/empty.txt"
-    putStrLn "✓ -v works"
+    out5 <- runCmd "./game.exe -v tests/empty.txt"
+    putStrLn "[OK] -v works"
 
     -- 6. Test -h (help)
-    out6 <- runCmd "./game -h"
+    out6 <- runCmd "./game.exe -h"
     if "Usage:" `isInfixOf` out6
-        then putStrLn "✓ -h works"
-        else putStrLn "✗ -h output missing Usage line"
+        then putStrLn "[OK] -h works"
+        else putStrLn "[FAIL] -h output missing Usage line"
 
     putStrLn "\nAll flag tests complete."
