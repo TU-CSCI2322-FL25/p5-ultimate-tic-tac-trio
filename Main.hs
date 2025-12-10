@@ -283,7 +283,7 @@ main = do
 interactiveLoop :: Game -> Maybe Int -> IO ()
 interactiveLoop game depth = do
     putStrLn $ prettyPrint game
-    if terminal game
+    if isJust (checkWinner game)
         then putStrLn $ "Game over! Winner: " ++ show (result game)
         else do
             putStrLn "Your move (format x,y):"
