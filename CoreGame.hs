@@ -27,7 +27,7 @@ module CoreGame
   type Move = (Integer, Integer)
   
   
-  --helper function to change prev move and keep track like the player helper function
+--helper function to change prev move and keep track like the player helper function
   
   addMove :: Game -> Move -> Game
   addMove (board, playa, premove) move = if move `elem` legalm then (updateBoard board move playa, nextPlaya playa, move) else error "That is not a legal move punk >:("
