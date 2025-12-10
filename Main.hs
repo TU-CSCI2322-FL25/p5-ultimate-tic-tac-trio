@@ -5,7 +5,7 @@ import System.Console.GetOpt
 import System.Exit
 import Data.Maybe
 import CoreGame
-import printInOutput
+import PrintInOutput
 import Solve
 import Control.Monad (when, unless)
 
@@ -90,6 +90,32 @@ playInteractive game depth verbose = do
                 let newGame = addMove game mv
                 when verbose $ putStrLn $ "Board after move:\n" ++ prettyPrint newGame
                 playInteractive newGame depth verbose
+
+initialGame :: Game
+initialGame = gameStart
+
+-- | Load game from file
+loadGame :: FilePath -> IO Game
+loadGame path = do
+    contents <- readFile path
+    return $ readGame contents
+
+-- | Depth-limited best move
+bestMoveDepth :: Int -> Game -> Move
+bestMoveDepth depth g = snd $ whoMightWin g depth
+
+-- | Depth-limited forced outcome
+whoWillWinDepth :: Int -> Game -> Winner
+whoWillWinDepth depth g =
+    case currentPlayer g of
+        X -> case fst (whoMightWin g depth) of
+                10  -> Win X
+                0   -> Draw
+                _   -> Win O
+        O -> case fst (whoMightWin g depth) of
+                -10 -> Win O
+                0   -> Draw
+                _   -> Win X
 
 main :: IO ()
 main = do
