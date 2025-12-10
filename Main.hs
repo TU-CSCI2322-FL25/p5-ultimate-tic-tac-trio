@@ -191,7 +191,7 @@ options =
   , Option ['h'] ["help"]        (NoArg (\opts -> opts { optHelp = True })) "Show this help message"
   , Option ['m'] ["move"]        (ReqArg (\s opts -> opts { optMove = Just (parseMove s) }) "MOVE") "Apply a move (format: x,y)"
   , Option ['v'] ["verbose"]     (NoArg (\opts -> opts { optVerbose = True })) "Verbose output"
-  , Option ['i'] ["interactive"](NoArg (\opts -> opts { optInteractive = True })) "Play interactively against the computer"
+  , Option ['i'] ["interactive"] (NoArg (\opts -> opts { optInteractive = True })) "Play interactively against the computer"
   ]
 
 -- Parse move string "x,y" into a Move
@@ -242,7 +242,6 @@ applyMove opts game = case optMove opts of
 
 showHelp :: IO ()
 showHelp = do
-    -- Ensure exact first line "Usage:" for test runner
     putStrLn "Usage: game [OPTIONS] [FILE]"
     putStrLn $ usageInfo "" options
     putStrLn "Examples:"
@@ -250,6 +249,7 @@ showHelp = do
     putStrLn "  game -d 3 -i                   # Play interactively with depth cutoff 3"
     putStrLn "  game -m 1,5 -v mygame.txt      # Apply move (1,5) and pretty print"
     putStrLn "  game -h                         # Show this help message"
+    hFlush stdout
     exitSuccess
 
 --------------------------------------------------------------------------------
@@ -279,6 +279,7 @@ interactiveLoop game depth = do
 
 main :: IO ()
 main = do
+    -- Ensure UTF-8 output for test runner
     hSetEncoding stdout utf8
     hSetEncoding stderr utf8
 
@@ -286,15 +287,16 @@ main = do
     let (actions, files, errs) = getOpt Permute options args
     let opts = foldl (flip id) defaultOptions actions
 
-    -- Show help if requested or if there are errors
+    -- Show help if requested or errors exist
     when (optHelp opts) showHelp
     when (not (null errs)) $ do
         mapM_ putStrLn errs
         showHelp
 
-    -- ⚠️ Conflict warning first, before any other output
-    when (optWinner opts && isJust (optDepth opts)) $
+    -- Conflict warning: -w and -d together
+    when (optWinner opts && isJust (optDepth opts)) $ do
         putStrLn "Warning: -d <num> has no effect when -w is used (exhaustive search overrides depth)."
+        hFlush stdout
 
     -- Determine input file
     file <- case (files, optFile opts) of
@@ -304,14 +306,15 @@ main = do
             putStrLn "Enter game file path:"
             getLine
 
+    -- Load game from file
     game <- loadGame file
 
-    -- Winner flag
+    -- Winner flag: show best move
     when (optWinner opts) $ do
         putBestMove opts game
         exitSuccess
 
-    -- Apply move
+    -- Apply move if given
     when (isJust (optMove opts)) $ do
         applyMove opts game
         exitSuccess
