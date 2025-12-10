@@ -37,8 +37,8 @@ module PrintInOutput (prettyPrint, readGame, showGame)
     comWhole :: [[SmallBoard]] -> [String]
     comWhole [r1, r2, r3] = comRow r1 ++ comRow r2 ++ comRow r3
     comWhole _ = error "big board must be 3×3"
-	  
   
+
   -- story 12
   readGame :: String -> Game --main 
   readGame str = (board, player, premove)
