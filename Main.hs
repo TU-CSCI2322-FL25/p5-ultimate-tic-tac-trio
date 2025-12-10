@@ -218,7 +218,7 @@ helpMessage = usageInfo "Usage: Game [OPTIONS] <gamefile>" options
 
 -- | Initial game (empty board)
 initialGame :: Game
-initialGame = GameStart  -- replace with whatever CoreGame defines as starting game
+initialGame = gameStart  -- replace with whatever CoreGame defines as starting game
 
 -- | Check if game is over
 isTerminalGame :: Game -> Bool
