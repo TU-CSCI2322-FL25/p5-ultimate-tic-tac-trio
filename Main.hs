@@ -242,7 +242,8 @@ applyMove opts game = case optMove opts of
 
 showHelp :: IO ()
 showHelp = do
-    putStrLn $ usageInfo "Usage: game [OPTIONS] [FILE]" options
+    putStrLn "Usage: game [OPTIONS] [FILE]"
+    putStrLn $ usageInfo "" options
     putStrLn "Examples:"
     putStrLn "  game -w mygame.txt             # Show best move (exhaustive)"
     putStrLn "  game -d 3 -i                   # Play interactively with depth cutoff 3"
@@ -292,7 +293,8 @@ main = do
         showHelp
 
     -- Conflict warning: -w and -d together
-    when (optWinner opts && isJust (optDepth opts)) $ do
+    let conflict = optWinner opts && isJust (optDepth opts)
+    when conflict $ do
         putStrLn "Warning: -d <num> has no effect when -w is used (exhaustive search overrides depth)."
         hFlush stdout
         -- Do NOT exit here so test runner can capture warning
