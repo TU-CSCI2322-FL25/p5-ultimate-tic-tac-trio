@@ -31,8 +31,8 @@ module CoreGame
   
   addMove :: Game -> Move -> Game
   addMove (board, playa, premove) move = if move `elem` legalm then (updateBoard board move playa, nextPlaya playa, move) else error "That is not a legal move punk >:("
-        where  	
-  	        legalm = legalMoves (board, playa, premove)
+    where  	
+  	legalm = legalMoves (board, playa, premove)
   
   	updateBoard :: GameBoard -> Move -> Player -> GameBoard
   	updateBoard [[a,b,c],[d,e,f],[g,h,i]] (1, x) p = [[checkFinished(updateSquare a x p),b,c],[d,e,f],[g,h,i]]
