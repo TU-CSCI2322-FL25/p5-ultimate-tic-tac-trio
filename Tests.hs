@@ -168,7 +168,7 @@ gb6 =
     "X \r( 2,3) \rXXX XXX XXX \r0O0 00X X00 \rOOO OOO OOO \r000 000 000 \r000 000 000 \r000 000 000 \r000 000 000 \r000 000 000 \r000 000 000"
 
 --------------------------------------------------------------------------------
--- Helpers to run external commands
+-- Helpers  run external commands
 --------------------------------------------------------------------------------
 
 runCmd :: String -> IO String
@@ -198,7 +198,7 @@ runFlagTests = do
     putStrLn "\n== Testing flags =="
 
     -- 1. Test -w (winner)
-    out1 <- runCmd "./game -w tests/empty.txt"
+    out1 <- runCmd "./game.exe -w tests/empty.txt"
     putStrLn "✓ -w works"
 
     -- 2. Test -d (depth)
